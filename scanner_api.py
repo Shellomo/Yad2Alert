@@ -5,7 +5,13 @@ from publisher import Publisher
 
 
 def set_configuration(project_name):
-    os.makedirs(os.path.join(PROJECTS_FOLDER, project_name), exist_ok=True)
+    if not os.path.exists(PROJECTS_FOLDER):
+        print('Creating folder: ' + PROJECTS_FOLDER)
+        os.makedirs(PROJECTS_FOLDER)
+
+    if not os.path.exists(os.path.join(PROJECTS_FOLDER, project_name)):
+        print('Creating folder: ', os.path.join(PROJECTS_FOLDER, project_name))
+        os.makedirs(os.path.join(PROJECTS_FOLDER, project_name), exist_ok=True)
 
 
 def set_requirements_files(project_name):
