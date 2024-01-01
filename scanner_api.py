@@ -17,7 +17,7 @@ def set_requirements_files(project_name):
 
 class Scanner:
     def __init__(self, project, test_mode=False):
-
+        print('Starting scanner: ' + project['name'])
         self.project_name = project['name']
         set_configuration(self.project_name)
         set_requirements_files(self.project_name)

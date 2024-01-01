@@ -24,6 +24,7 @@ The tool uses a `jobs.json` file for configuration. Each job in the file include
 ## Prerequisites
 - Telegram account
 - GitHub account
+- Heroku account
 
 ## Setup Instructions
 
@@ -51,3 +52,17 @@ Add the following secrets to your GitHub repository ([How to add secrets to GitH
 2. Optionally, add free text to refine your search.
 3. Click on 'Search'.
 4. Copy the URL from the browser's address bar and paste it into the `url` field of the relevant job in `jobs.json`.
+
+
+### Setup Heroku
+- create Heroku account [link](https://heroku.com/signup)
+- in order to create app you need to add payment method [link](https://dashboard.heroku.com/account/billing)
+- install heroku cli [link](https://devcenter.heroku.com/articles/heroku-cli#install)
+- run `heroku login` and `heroku create`
+- add environment variables: `API_ID`, `API_HASH`, `BOT_API` by: `heroku config:set API_ID=your_api_id API_HASH=your_api_hash BOT_API=your_bot_api`
+- push code to heroku: `git push heroku master` or `git push heroku main`
+- open app: `heroku open`
+- test app: `heroku run python3 main.py`
+- add scheduler: `heroku addons:create scheduler:standard`
+- open scheduler dashboard: `heroku addons:open scheduler`
+- set your preferred time

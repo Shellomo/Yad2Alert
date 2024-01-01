@@ -3,7 +3,7 @@ from scanner_api import Scanner
 
 
 def main():
-    print('Starting scanner')
+    print('Starting...')
     with open('jobs.json', 'r') as f:
         jobs = json.load(f)
     for job in jobs:
