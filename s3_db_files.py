@@ -31,8 +31,6 @@ def get_db_file(file_name):
     s3.download_file(settings.BUCKET_NAME, file_name, file_name)
 
     with open(file_name, 'r', encoding='utf8') as f:
-        print('found file: ' + file_name)
-        print(json.load(f))
         return json.load(f)
 
 

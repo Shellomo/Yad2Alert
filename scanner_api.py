@@ -129,6 +129,7 @@ class Scanner:
                     is_publish = self.publisher.publish(ad)
                     if is_publish:
                         self.db[ad['id']] = ad
+                        self.save_db()
 
                 # price changed alert
 
@@ -160,13 +161,17 @@ class Scanner:
                         is_publish = self.publisher.publish(ad, new_price=True)
                         if is_publish:
                             self.db[ad['id']] = ad
+                            self.save_db()
 
         self.publisher.close()
         print('Found ' + str(new_ads) + ' new ads')
 
-        # save db
-        print('Saving db')
+        # upload updated db
         put_db_file(self.project_db_file_name)
+
+    def save_db(self):
+        with open(self.project_db_file_name, 'w', encoding='utf8') as f:
+            json.dump(self.db, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == '__main__':
