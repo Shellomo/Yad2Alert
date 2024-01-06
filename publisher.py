@@ -1,6 +1,7 @@
 import os
 from telethon import TelegramClient
-from settings import *
+# from settings import *
+from settings_temp import *  # ToDo remove this
 import requests
 import shutil
 
@@ -78,6 +79,8 @@ class Publisher:
 
         except Exception as e:
             print(e)
+            print('An error occurred when trying to send the message.\n'
+                  'make sure the bot has permission to send messages to the channel.')
             self.close()
             return False
 

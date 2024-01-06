@@ -1,32 +1,16 @@
 import json
+import os
 import requests
-from settings import *
+# from settings import *
+from settings_temp import *  # ToDo remove this
 from publisher import Publisher
-
-
-def set_configuration(project_name):
-    if not os.path.exists(PROJECTS_FOLDER):
-        print('Creating folder: ' + PROJECTS_FOLDER)
-        os.makedirs(PROJECTS_FOLDER)
-
-    if not os.path.exists(os.path.join(PROJECTS_FOLDER, project_name)):
-        print('Creating folder: ', os.path.join(PROJECTS_FOLDER, project_name))
-        os.makedirs(os.path.join(PROJECTS_FOLDER, project_name), exist_ok=True)
-
-
-def set_requirements_files(project_name):
-    db_file = os.path.join(PROJECTS_FOLDER, project_name, DB_FILE)
-    if not os.path.exists(db_file):
-        with open(db_file, 'w') as f:
-            json.dump({}, f)
+from s3_db_files import get_db_file, put_db_file
 
 
 class Scanner:
     def __init__(self, project, test_mode=False):
         print('Starting scanner: ' + project['name'])
         self.project_name = project['name']
-        set_configuration(self.project_name)
-        set_requirements_files(self.project_name)
         self.pages_to_scan = project['pages_to_scan']
         self.urls = project['urls']
         self.alert_on_price_change = project['alert_on_price_change']
@@ -34,12 +18,13 @@ class Scanner:
         self.fixed_urls = self.generate_urls()
         self.response = {}
         self.test = test_mode
-        self.db = self.get_db()
+        self.project_db_file_name = self.project_name + '.json'
+        self.db = get_db_file(self.project_db_file_name)
         self.publisher = Publisher(self.telegram_channel)
 
     def generate_urls(self):
-        urls = [u.replace('https://www.yad2',
-                          'https://gw.yad2') for u in self.urls]
+        urls = [u.replace('https://www.yad2.co.il/products/',
+                          'https://gw.yad2.co.il/feed-search-legacy/products/') for u in self.urls]
 
         if self.pages_to_scan > 1:
             for page in range(2, self.pages_to_scan + 1):
@@ -70,7 +55,7 @@ class Scanner:
         business_ads = 0
         ads_objects = self.response['data']['feed']['feed_items']
         if self.test:
-            with open(os.path.join(PROJECTS_FOLDER, self.project_name, 'ads.txt'), 'w', encoding='utf8') as f:
+            with open('ads.txt', 'w', encoding='utf8') as f:
                 print('Writing ads to file')
                 json.dump(ads_objects, f, ensure_ascii=False, indent=4)
 
@@ -114,12 +99,12 @@ class Scanner:
 
         if self.test:
             print('Test mode is on')
-            if not os.path.exists(os.path.join(PROJECTS_FOLDER, self.project_name, 'page_content.txt')):
-                with open(os.path.join(PROJECTS_FOLDER, self.project_name, 'page_content.txt'), 'w',
+            if not os.path.exists(os.path.join(self.project_name, 'page_content.txt')):
+                with open(os.path.join(self.project_name, 'page_content.txt'), 'w',
                           encoding='utf8') as f:
                     self.get_page_content(self.urls)
                     json.dump(self.response, f, ensure_ascii=False, indent=4)
-            with open(os.path.join(PROJECTS_FOLDER, self.project_name, 'page_content.txt'), 'r', encoding='utf8') as f:
+            with open(os.path.join(self.project_name, 'page_content.txt'), 'r', encoding='utf8') as f:
                 self.response = json.load(f)
 
         for url in self.fixed_urls:
@@ -144,7 +129,6 @@ class Scanner:
                     is_publish = self.publisher.publish(ad)
                     if is_publish:
                         self.db[ad['id']] = ad
-                        self.save_db()
 
                 # price changed alert
 
@@ -176,20 +160,13 @@ class Scanner:
                         is_publish = self.publisher.publish(ad, new_price=True)
                         if is_publish:
                             self.db[ad['id']] = ad
-                            self.save_db()
 
         self.publisher.close()
         print('Found ' + str(new_ads) + ' new ads')
 
-    def get_db(self):
-        with open(os.path.join(PROJECTS_FOLDER, self.project_name, DB_FILE), 'r', encoding='utf8') as f:
-            db = json.load(f)
-
-        return db
-
-    def save_db(self):
-        with open(os.path.join(PROJECTS_FOLDER, self.project_name, DB_FILE), 'w', encoding='utf8') as f:
-            json.dump(self.db, f, ensure_ascii=False, indent=4)
+        # save db
+        print('Saving db')
+        put_db_file(self.project_db_file_name)
 
 
 if __name__ == '__main__':
