@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create S3 bucket, Lambda function, and hourly trigger
+
+Resources:
+  Yad2AlertBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BUCKETNAME
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub 'arn:aws:s3:::${BUCKETNAME}/*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 'arn:aws:logs:*:*:*'
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: Yad2AlertFunction
+      Layers:
+        - arn:aws:lambda:us-east-1:553035198032:layer:git-lambda2:8
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import os
+          import subprocess
+          import sys
+          
+          REPO_URL = 'https://github.com/Shellomo/Yad2Alert'
+          REPO_NAME = REPO_URL.split('/')[-1]  # Extracts the repository name from the URL
+          
+          
+          def clone_repo():
+              subprocess.run(['git', 'clone', REPO_URL])
+          
+          
+          def install_requirements():
+              # Ensure the requirements file is in the cloned repository
+              requirements_path = os.path.join(REPO_NAME, 'requirements.txt')
+              # pip install custom package to /tmp/ and add to path
+              subprocess.call(f'pip3 install -r {requirements_path} -t /tmp/ --no-cache-dir'.split(), stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL)
+              sys.path.insert(1, '/tmp/')
+          
+          
+          def lambda_handler(event, context):
+              print('Starting...')
+              
+              # change directory to /tmp
+              os.chdir('/tmp')
+              
+              clone_repo()
+              print(f'Cloned repository: {REPO_NAME}')
+          
+              # Change directory to the cloned repository
+              os.chdir(REPO_NAME)
+              print(f'Changed directory to: {REPO_NAME}')
+          
+              install_requirements()
+              print('Installed requirements')
+          
+              # Run the main script. Make sure 'main.py' is in the root of the cloned repository
+              os.system('python3 main.py')
+
+
+      Runtime: python3.12
+      Timeout: 60
+      Environment:
+        Variables:
+          APIID: !Ref APIID
+          APIHASH: !Ref APIHASH
+          BOTAPI: !Ref BOTAPI
+          BUCKETNAME: !Ref BUCKETNAME
+
+  LambdaTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: 'rate(1 hour)'
+      Targets:
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: "LambdaTarget"
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaTrigger.Arn
+
+Parameters:
+  APIID:
+    Type: String
+    Description: API ID for the Lambda function
+
+  APIHASH:
+    Type: String
+    Description: API Hash for the Lambda function
+
+  BOTAPI:
+    Type: String
+    Description: Bot API for the Lambda function
+
+  BUCKETNAME:
+    Type: String
+    Description: S3 Bucket name
+    Default: yad2alert

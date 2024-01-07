@@ -1,11 +1,11 @@
 import json
+import s3_db_files
 from scanner_api import Scanner
 
 
 def main():
     print('Starting...')
-    with open('jobs.json', 'r') as f:
-        jobs = json.load(f)
+    jobs = s3_db_files.get_db_file('jobs.json', create=False)
     for job in jobs:
         if job['enabled'] is False:
             continue

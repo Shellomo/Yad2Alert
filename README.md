@@ -23,8 +23,7 @@ The tool uses a `jobs.json` file for configuration. Each job in the file include
 
 ## Prerequisites
 - Telegram account
-- GitHub account
-- Heroku account
+- AWS account
 
 ## Setup Instructions
 
@@ -35,11 +34,6 @@ The tool uses a `jobs.json` file for configuration. Each job in the file include
    - Name your bot (e.g., `yad2_alert_bot`).
    - The bot token you receive will be your `BOT_API`.
 
-### GitHub Secrets
-Add the following secrets to your GitHub repository ([How to add secrets to GitHub](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-an-environment)):
-- `API_ID`
-- `API_HASH`
-- `BOT_API`
 
 ### How to Get Telegram Channel ID?
 1. Create a Telegram channel.
@@ -54,15 +48,6 @@ Add the following secrets to your GitHub repository ([How to add secrets to GitH
 4. Copy the URL from the browser's address bar and paste it into the `url` field of the relevant job in `jobs.json`.
 
 
-### Setup Heroku
-- create Heroku account [link](https://heroku.com/signup)
-- in order to create app you need to add payment method [link](https://dashboard.heroku.com/account/billing)
-- install heroku cli [link](https://devcenter.heroku.com/articles/heroku-cli#install)
-- run `heroku login` and `heroku create`
-- add environment variables: `API_ID`, `API_HASH`, `BOT_API` by: `heroku config:set API_ID=your_api_id API_HASH=your_api_hash BOT_API=your_bot_api`
-- push code to heroku: `git push heroku master` or `git push heroku main`
-- open app: `heroku open`
-- test app: `heroku run python3 main.py`
-- add scheduler: `heroku addons:create scheduler:standard`
-- open scheduler dashboard: `heroku addons:open scheduler`
-- set your preferred time
+### Setup on AWS
+1. Create an S3 bucket, name like `yad2alert` is ok.
+2. copy the `jobs.json` file, edit it as required, and upload it to the S3 bucket.

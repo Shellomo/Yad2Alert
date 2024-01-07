@@ -6,7 +6,7 @@ from botocore import exceptions
 import settings_temp as settings  # ToDo: remove this
 
 
-def get_db_file(file_name):
+def get_db_file(file_name, create=True):
     s3 = boto3.client(
         's3',
         aws_access_key_id=settings.AWS_ACCESS_KEY,
@@ -23,10 +23,14 @@ def get_db_file(file_name):
     try:
         s3.head_object(Bucket=settings.BUCKET_NAME, Key=file_name)
     except exceptions.ClientError:
-        print('File does not exist. creating...')
-        with open(file_name, 'w', encoding='utf8') as f:
-            json.dump({}, f)
-        return {}
+        if create:
+            print('File does not exist. creating...')
+            with open(file_name, 'w', encoding='utf8') as f:
+                json.dump({}, f)
+            return {}
+        else:
+            print(f'File {file_name} does not exist. exiting...')
+            exit(1)
 
     s3.download_file(settings.BUCKET_NAME, file_name, file_name)
 
