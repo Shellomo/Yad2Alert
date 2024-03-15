@@ -3,9 +3,6 @@
 ## Overview
 **Yad2Alert** is a tool designed to send automatic alerts to Telegram channels when new advertisements are posted on Yad2. It allows users to configure specific URLs to monitor and specify the destination Telegram channel for alerts.
 
-<img src="Screen-Recording.gif" width="200" height="300" alt="Description of the GIF">
-
-
 ### Features
 - **Automated Alerts**: Sends notifications to Telegram channels about new ads.
 - **Customizable**: Users can configure which URLs to scan and where to send alerts.
