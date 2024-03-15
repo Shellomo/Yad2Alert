@@ -41,7 +41,7 @@ Resources:
       Handler: main.main
       Code:
           S3Bucket: !Ref BUCKETNAME
-          S3Key: yad2Alert.zip
+          S3Key: yad2alert.zip
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.12
       Timeout: 60

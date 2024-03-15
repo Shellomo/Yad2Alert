@@ -7,6 +7,6 @@
     ],
     "enabled": true,
     "alert_on_price_change": true,
-    "telegram_channel": -1002029524266
+    "telegram_channel": -123456789
   }
 ]
