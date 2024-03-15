@@ -2,10 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudFormation template to create S3 bucket, Lambda function, and hourly trigger
 
 Resources:
-  Yad2AlertBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref BUCKETNAME
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -25,7 +21,12 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:GetObject
-                Resource: !Sub 'arn:aws:s3:::${BUCKETNAME}/*'
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                Resource:
+                - !Sub 'arn:aws:s3:::${BUCKETNAME}'
+                - !Sub 'arn:aws:s3:::${BUCKETNAME}/*'
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -37,53 +38,11 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: Yad2AlertFunction
-      Layers:
-        - arn:aws:lambda:us-east-1:553035198032:layer:git-lambda2:8
-      Handler: index.lambda_handler
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Handler: main.main
       Code:
-        ZipFile: |
-          import os
-          import subprocess
-          import sys
-          
-          REPO_URL = 'https://github.com/Shellomo/Yad2Alert'
-          REPO_NAME = REPO_URL.split('/')[-1]  # Extracts the repository name from the URL
-          
-          
-          def clone_repo():
-              subprocess.run(['git', 'clone', REPO_URL])
-          
-          
-          def install_requirements():
-              # Ensure the requirements file is in the cloned repository
-              requirements_path = os.path.join(REPO_NAME, 'requirements.txt')
-              # pip install custom package to /tmp/ and add to path
-              subprocess.call(f'pip3 install -r {requirements_path} -t /tmp/ --no-cache-dir'.split(), stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
-              sys.path.insert(1, '/tmp/')
-          
-          
-          def lambda_handler(event, context):
-              print('Starting...')
-              
-              # change directory to /tmp
-              os.chdir('/tmp')
-              
-              clone_repo()
-              print(f'Cloned repository: {REPO_NAME}')
-          
-              # Change directory to the cloned repository
-              os.chdir(REPO_NAME)
-              print(f'Changed directory to: {REPO_NAME}')
-          
-              install_requirements()
-              print('Installed requirements')
-          
-              # Run the main script. Make sure 'main.py' is in the root of the cloned repository
-              os.system('python3 main.py')
-
-
+          S3Bucket: !Ref BUCKETNAME
+          S3Key: yad2Alert.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.12
       Timeout: 60
       Environment:
