@@ -48,3 +48,23 @@ The tool uses a `jobs.json` file for configuration. Each job in the file include
 ### Setup on AWS
 1. Create an S3 bucket, name like `yad2alert` is ok.
 2. copy the `jobs.json` file, edit it as required, and upload it to the S3 bucket.
+
+### Deploy the Lambda Function
+1. Clone the repository.
+2. Create a virtual environment: `python3 -m venv venv`
+3. Activate the virtual environment: `source venv/bin/activate`
+4. create new folder for the package: `mkdir package`
+5. Install the required packages: `pip install -r requirements.txt -t ./package/`
+6. move to the package folder: `cd package`
+7. Zip the files: `zip -r ../yad2alert.zip .`
+8. Move back to the root folder: `cd ..`
+9. Add all the files to the zip: `zip -g yad2alert.zip *.py`
+10. Upload the zip file to the S3 bucket.
+11. go to CloudFormation, create a new stack, and use the `yad2alert_deploy.yaml` file to create the stack.
+12. Fill in the required parameters, including the S3 bucket name and the zip file name.
+
+## Development
+after you make changes to the code, you can run the following command to update the lambda function with the new code:
+```bash
+zip -g yad2alert.zip *.py &&  aws s3 cp yad2Alert.zip s3://yad2alert/ && aws lambda update-function-code --function-name Yad2AlertFunction --s3-bucket yad2alert --s3-key yad2Alert.zip
+```
