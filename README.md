@@ -20,8 +20,7 @@ The tool uses a `jobs.json` file for configuration. Each job in the file include
 
 ## Prerequisites
 - Telegram account
-- GitHub account
-- Heroku account
+- AWS account
 
 ## Setup Instructions
 
