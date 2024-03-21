@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create S3 bucket, Lambda function, and hourly trigger
+
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                Resource:
+                - !Sub 'arn:aws:s3:::${BUCKETNAME}'
+                - !Sub 'arn:aws:s3:::${BUCKETNAME}/*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 'arn:aws:logs:*:*:*'
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: Yad2AlertFunction
+      Handler: main.main
+      Code:
+          S3Bucket: !Ref BUCKETNAME
+          S3Key: yad2alert.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.12
+      Timeout: 60
+      Environment:
+        Variables:
+          APIID: !Ref APIID
+          APIHASH: !Ref APIHASH
+          BOTAPI: !Ref BOTAPI
+          BUCKETNAME: !Ref BUCKETNAME
+
+  LambdaTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: 'rate(1 hour)'
+      Targets:
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: "LambdaTarget"
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaTrigger.Arn
+
+Parameters:
+  APIID:
+    Type: String
+    Description: API ID for the Lambda function
+
+  APIHASH:
+    Type: String
+    Description: API Hash for the Lambda function
+
+  BOTAPI:
+    Type: String
+    Description: Bot API for the Lambda function
+
+  BUCKETNAME:
+    Type: String
+    Description: S3 Bucket name
+    Default: yad2alert

@@ -1,13 +1,12 @@
 [
   {
     "name": "Demo",
-    "pages_to_scan": 5,
+    "pages_to_scan": 1,
     "urls": [
-      "https://www.yad2.co.il/products/baby-and-child?category=11&item=75&info=%D7%93%D7%95%D7%A0%D7%94",
-      "https://www.yad2.co.il/products/baby-and-child?category=11&item=75&info=doona"
+      "https://www.yad2.co.il/products/cellular?category=5&item=29&area=8&price=-1-100"
     ],
     "enabled": true,
     "alert_on_price_change": true,
-    "telegram_channel": -111111111111
+    "telegram_channel": -123456789
   }
 ]

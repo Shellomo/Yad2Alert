@@ -1,11 +1,19 @@
 import json
+import os
+
+import s3_db_files
 from scanner_api import Scanner
 
 
-def main():
+def main(event, lambda_context):
     print('Starting...')
-    with open('jobs.json', 'r') as f:
-        jobs = json.load(f)
+
+    # change working directory to /tmp
+    print('Changing working directory to /tmp')
+    os.chdir('/tmp')
+
+    print(f'Getting jobs from s3 ({s3_db_files.bucket_name}/jobs.json)')
+    jobs = s3_db_files.get_db_file('jobs.json', create=False)
     for job in jobs:
         if job['enabled'] is False:
             continue
@@ -14,4 +22,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(0, 0)
